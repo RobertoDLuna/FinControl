@@ -115,3 +115,22 @@ export async function testDatabaseConnection(): Promise<void> {
 export async function closeDatabasePool(): Promise<void> {
   await pool.end();
 }
+
+/**
+ * Formata erros de banco (incluindo AggregateError de driver TCP/pg) sem vazar segredos.
+ */
+export function formatDatabaseError(error: unknown): string {
+  if (error instanceof AggregateError && error.errors.length > 0) {
+    return error.errors.map((innerError) => formatDatabaseError(innerError)).join(' | ');
+  }
+
+  if (error instanceof Error) {
+    const pgCode =
+      'code' in error && typeof error.code === 'string' && error.code.length > 0
+        ? ` (${error.code})`
+        : '';
+    return `${error.message || error.name}${pgCode}`;
+  }
+
+  return String(error);
+}
