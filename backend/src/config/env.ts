@@ -19,6 +19,14 @@ const envSchema = z
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().positive().default(3333),
     CORS_ORIGIN: z.string().default('http://localhost:5173'),
+    JWT_SECRET: z
+      .string()
+      .min(32, 'JWT_SECRET deve ter no mínimo 32 caracteres.')
+      .refine(
+        (value) => !value.includes('CHANGE_ME'),
+        'JWT_SECRET não pode utilizar o valor placeholder CHANGE_ME.',
+      ),
+    JWT_EXPIRES_IN: z.string().min(1).default('1d'),
 
     DATABASE_URL: postgresUrlSchema.optional().or(z.literal('')),
     DB_HOST: z.string().min(1).default('localhost'),
