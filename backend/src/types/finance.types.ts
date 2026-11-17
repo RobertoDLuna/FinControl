@@ -45,3 +45,23 @@ export interface Account {
 export interface AccountWithBalance extends Account {
   currentBalanceCents: number;
 }
+
+export interface Card {
+  id: string;
+  userId: string;
+  accountId: string;
+  name: string;
+  brand: string | null;
+  lastFourDigits: string | null;
+  creditLimitCents: number;
+  closingDay: number;
+  dueDay: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CardWithLimit extends Card {
+  usedLimitCents: number;
+  availableLimitCents: number;
+}
