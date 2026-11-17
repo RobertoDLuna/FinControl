@@ -18,6 +18,7 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().positive().default(3333),
+    CORS_ORIGIN: z.string().default('http://localhost:5173'),
 
     DATABASE_URL: postgresUrlSchema.optional().or(z.literal('')),
     DB_HOST: z.string().min(1).default('localhost'),
@@ -38,6 +39,9 @@ const envSchema = z
   .superRefine((data, ctx) => {
     const databaseUrl = data.DATABASE_URL?.trim() ?? '';
     const hasDatabaseUrl = databaseUrl.length > 0;
+    const corsOrigins = data.CORS_ORIGIN.split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
 
     if (data.NODE_ENV === 'production') {
       if (!hasDatabaseUrl && (!data.DB_PASSWORD || data.DB_PASSWORD === 'CHANGE_ME')) {
@@ -55,6 +59,14 @@ const envSchema = z
           message: 'DATABASE_URL em produção não pode conter o placeholder CHANGE_ME.',
         });
       }
+
+      if (corsOrigins.length === 0 || corsOrigins.includes('*')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['CORS_ORIGIN'],
+          message: 'CORS_ORIGIN em produção deve listar origens explícitas e não pode usar "*".',
+        });
+      }
     }
   });
 
@@ -65,8 +77,15 @@ if (!parsed.success) {
   throw new Error('Falha ao carregar e validar as variáveis de ambiente.');
 }
 
+const corsOrigins = Object.freeze(
+  parsed.data.CORS_ORIGIN.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+
 export const env = Object.freeze({
   ...parsed.data,
+  CORS_ORIGINS: corsOrigins,
   DATABASE_URL:
     parsed.data.DATABASE_URL && parsed.data.DATABASE_URL.trim().length > 0
       ? parsed.data.DATABASE_URL.trim()
