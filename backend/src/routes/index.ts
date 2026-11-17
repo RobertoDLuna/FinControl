@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { accountsRoutes } from './accounts.routes.js';
 import { authRoutes } from './auth.routes.js';
+import { cardsRoutes } from './cards.routes.js';
 import { categoriesRoutes } from './categories.routes.js';
 import { healthRoutes } from './health.routes.js';
 
@@ -10,3 +11,4 @@ apiRoutes.use('/health', healthRoutes);
 apiRoutes.use('/auth', authRoutes);
 apiRoutes.use('/categories', categoriesRoutes);
 apiRoutes.use('/accounts', accountsRoutes);
+apiRoutes.use('/cards', cardsRoutes);
